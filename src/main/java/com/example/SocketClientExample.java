@@ -1,10 +1,25 @@
 package com.example;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.border.Border;
 
 
 public class SocketClientExample {
@@ -24,24 +39,63 @@ public class SocketClientExample {
         //get the localhost IP address, if server is running on some other IP, you need to use that
         InetAddress host = InetAddress.getLocalHost();
         Socket socket = null;
-        ObjectOutputStream oos = null;
-        ObjectInputStream ois = null;
-        for(int i=0; i<5;i++){
-            //establish socket connection to server
-            socket = new Socket(host.getHostName(), 9876);
-            //write to socket using ObjectOutputStream
-            oos = new ObjectOutputStream(socket.getOutputStream());
-            System.out.println("Sending request to Socket Server");
-            if(i==4)oos.writeObject("exit");
-            else oos.writeObject(""+i);
-            //read the server response message
-            ois = new ObjectInputStream(socket.getInputStream());
+       
+        //swing
+        JFrame frame = new JFrame("Chat Server");
+        JPanel panel = new JPanel();
+        JTextField textField = new JTextField(20);
+        JButton sendButton = new JButton("Send");
+        JTextArea textArea = new JTextArea(10, 30);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        Border lineBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
+        scrollPane.setBorder(lineBorder);
+        frame.add(panel);
+        panel.add(textField);
+        panel.add(sendButton);
+        panel.add(scrollPane);
+
+        frame.setSize(300,300);  
+	    frame.setVisible(true);  
+        
+        //establish socket connection to server
+        socket = new Socket(host.getHostName(), 9876);
+
+        try{
+            //establish input and ouput streams
+            final ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            final ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            
+            //if text is inputed into the textbox
+            textField.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // TODO Auto-generated method stub
+                    String text = textField.getText();
+                    textField.setText("");
+                    try {
+                        oos.writeObject(text);
+                        textArea.append("Me: " + text + "\n");
+                        oos.flush();
+                    } catch (IOException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                }
+            
+            });
+
             String message = (String) ois.readObject();
-            System.out.println("Message: " + message);
-            //close resources
-            ois.close();
-            oos.close();
-            Thread.sleep(100);
+            textArea.append("Unknown Client: " + message + "\n");
+            System.out.println("Message Received from Server: " + message);
+            
+        }catch(Exception e){
+
         }
+        
+        //close resources
+            //ois.close();
+            // oos.close();
+            // Thread.sleep(100);
     }
 }

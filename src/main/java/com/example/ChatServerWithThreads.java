@@ -2,7 +2,9 @@ package com.example;
 
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Date;
+import javax.swing.*;
 
 /**
  * This program is a server that takes connection requests on
@@ -31,6 +33,9 @@ public class ChatServerWithThreads {
             System.out.println("Listening on port " + LISTENING_PORT);
             while (true) {
                   // Accept next connection request and handle it.
+                  connection = listener.accept();
+                  ConnectionHandler h = new ConnectionHandler(connection);
+                  h.start();
             }
         }
         catch (Exception e) {
@@ -38,7 +43,6 @@ public class ChatServerWithThreads {
             System.out.println("Error:  " + e);
             return;
         }
-
     }  // end main()
 
 
@@ -47,23 +51,71 @@ public class ChatServerWithThreads {
      *  client.
      */
     private static class ConnectionHandler extends Thread {
+        private static volatile ArrayList<ConnectionHandler> handlers;
         Socket client;
+        ObjectOutputStream oos;
+        ObjectInputStream ois;
+
         ConnectionHandler(Socket socket) {
             client = socket;
+            if(handlers == null){
+                handlers = new ArrayList();
+            }
+            handlers.add(this);
+            try {
+                oos = new ObjectOutputStream(client.getOutputStream());
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            try {
+                ois = new ObjectInputStream(client.getInputStream());
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
         }
+
+        public void sendMessage(String message){
+            for(int i = 0; i < handlers.size(); i++){
+                if(handlers.get(i) != this){
+                    ObjectOutputStream stream = handlers.get(i).oos;
+                    try {
+                        stream.writeObject(message);
+                        stream.flush();
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
         public void run() {
             String clientAddress = client.getInetAddress().toString();
             while(true) {
 	            try {
-	            	//your code to send messages goes here.
+                String message = (String) ois.readObject();
+                if(!message.equals("disconnect")){
+                    System.out.println("Message Received from a Client: " + message);
+                    //tell every other connenction handler to send this message
+                    sendMessage(message);
+                }
+                else{
+                    System.out.println("Closing connection");
+                    break;
+                }
 	            }
-	            catch (Exception e){
-	                System.out.println("Error on connection with: " 
-	                        + clientAddress + ": " + e);
+	             catch(EOFException e){
+                    System.out.println("the client disconnected, bye!!!");
+                    handlers.remove(this);
+                    break;
+                }
+                catch (Exception e){
+                    System.out.println("Error on connection with: " + clientAddress + ": " + e);
 	            }
             }
         }
     }
-
-
 }
