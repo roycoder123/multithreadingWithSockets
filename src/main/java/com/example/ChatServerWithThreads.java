@@ -58,10 +58,14 @@ public class ChatServerWithThreads {
 
         ConnectionHandler(Socket socket) {
             client = socket;
+
+            //array list to track the different clients
             if(handlers == null){
                 handlers = new ArrayList();
             }
             handlers.add(this);
+            
+            //initializing object output stream and object input stream
             try {
                 oos = new ObjectOutputStream(client.getOutputStream());
             } catch (IOException e) {
@@ -77,6 +81,7 @@ public class ChatServerWithThreads {
             
         }
 
+        //function that sends a message that was inputed from a client to all OTHER clients using handlers arraylist
         public void sendMessage(String message){
             for(int i = 0; i < handlers.size(); i++){
                 if(handlers.get(i) != this){
@@ -96,9 +101,9 @@ public class ChatServerWithThreads {
             String clientAddress = client.getInetAddress().toString();
             while(true) {
 	            try {
+                //tell every other connection handler to send this message
                 String message = (String) ois.readObject();
                 System.out.println("Message Received from a Client: " + message);
-                //tell every other connenction handler to send this message
                 sendMessage(message);
 	            } catch(EOFException e){
                     System.out.println("the client disconnected, bye!!!");

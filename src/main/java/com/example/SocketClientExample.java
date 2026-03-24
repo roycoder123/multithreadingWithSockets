@@ -40,7 +40,7 @@ public class SocketClientExample {
         InetAddress host = InetAddress.getLocalHost();
         final Socket socket = new Socket(host.getHostName(), 9876);
        
-        //swing
+        //swing for gui
         JFrame frame = new JFrame("Chat Server");
         JPanel panel = new JPanel();
         JTextField textField = new JTextField(20);
@@ -88,13 +88,14 @@ public class SocketClientExample {
             
             });
 
-            //if text is inputed into the textbox
+            //if disconnect button is clicked
             disconnectButton.addActionListener(new ActionListener() {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     // TODO Auto-generated method stub
                     try {
+                        //close all operations
                         ois.close();
                         oos.close();
                         socket.close();
@@ -113,6 +114,7 @@ public class SocketClientExample {
             
             });
 
+            //loop to check for incoming messages
             while(true){
                 String message = (String) ois.readObject();
                 textArea.append("     Unknown Client: " + message + "\n");
