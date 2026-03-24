@@ -38,13 +38,14 @@ public class SocketClientExample {
     public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException, InterruptedException{
         //get the localhost IP address, if server is running on some other IP, you need to use that
         InetAddress host = InetAddress.getLocalHost();
-        Socket socket = null;
+        final Socket socket = new Socket(host.getHostName(), 9876);
        
         //swing
         JFrame frame = new JFrame("Chat Server");
         JPanel panel = new JPanel();
         JTextField textField = new JTextField(20);
         JButton sendButton = new JButton("Send");
+        JButton disconnectButton = new JButton("Disconnect");
         JTextArea textArea = new JTextArea(10, 30);
         JScrollPane scrollPane = new JScrollPane(textArea);
         Border lineBorder = BorderFactory.createLineBorder(Color.BLACK, 2);
@@ -53,12 +54,14 @@ public class SocketClientExample {
         panel.add(textField);
         panel.add(sendButton);
         panel.add(scrollPane);
+        panel.add(disconnectButton);
 
         frame.setSize(300,300);  
 	    frame.setVisible(true);  
         
         //establish socket connection to server
-        socket = new Socket(host.getHostName(), 9876);
+        //socket = new Socket(host.getHostName(), 9876);
+
 
         try{
             //establish input and ouput streams
@@ -75,7 +78,7 @@ public class SocketClientExample {
                     textField.setText("");
                     try {
                         oos.writeObject(text);
-                        textArea.append("Me: " + text + "\n");
+                        textArea.append("     Me: " + text + "\n");
                         oos.flush();
                     } catch (IOException e1) {
                         // TODO Auto-generated catch block
@@ -85,17 +88,39 @@ public class SocketClientExample {
             
             });
 
-            String message = (String) ois.readObject();
-            textArea.append("Unknown Client: " + message + "\n");
-            System.out.println("Message Received from Server: " + message);
+            //if text is inputed into the textbox
+            disconnectButton.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // TODO Auto-generated method stub
+                    try {
+                        ois.close();
+                        oos.close();
+                        socket.close();
+
+                        textField.setEditable(false);
+                        sendButton.setEnabled(false);
+                        disconnectButton.setEnabled(false);
+
+                        textArea.append(".    You have disconnected.\n");
+                        oos.flush();
+                    } catch (IOException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                }
+            
+            });
+
+            while(true){
+                String message = (String) ois.readObject();
+                textArea.append("     Unknown Client: " + message + "\n");
+                System.out.println("Message Received from Server: " + message);
+            }
             
         }catch(Exception e){
-
+            System.out.println("Disconnected");
         }
-        
-        //close resources
-            //ois.close();
-            // oos.close();
-            // Thread.sleep(100);
     }
 }

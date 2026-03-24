@@ -97,17 +97,10 @@ public class ChatServerWithThreads {
             while(true) {
 	            try {
                 String message = (String) ois.readObject();
-                if(!message.equals("disconnect")){
-                    System.out.println("Message Received from a Client: " + message);
-                    //tell every other connenction handler to send this message
-                    sendMessage(message);
-                }
-                else{
-                    System.out.println("Closing connection");
-                    break;
-                }
-	            }
-	             catch(EOFException e){
+                System.out.println("Message Received from a Client: " + message);
+                //tell every other connenction handler to send this message
+                sendMessage(message);
+	            } catch(EOFException e){
                     System.out.println("the client disconnected, bye!!!");
                     handlers.remove(this);
                     break;
