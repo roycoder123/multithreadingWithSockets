@@ -117,7 +117,7 @@ public class SocketClientExample {
             //loop to check for incoming messages
             while(true){
                 String message = (String) ois.readObject();
-                textArea.append("     Unknown Client: " + message + "\n");
+                textArea.append("     Client " + message + "\n");
                 System.out.println("Message Received from Server: " + message);
             }
             

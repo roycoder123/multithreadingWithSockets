@@ -55,6 +55,7 @@ public class ChatServerWithThreads {
         Socket client;
         ObjectOutputStream oos;
         ObjectInputStream ois;
+        String name;
 
         ConnectionHandler(Socket socket) {
             client = socket;
@@ -64,6 +65,8 @@ public class ChatServerWithThreads {
                 handlers = new ArrayList();
             }
             handlers.add(this);
+
+            name = "" + handlers.size();            
             
             //initializing object output stream and object input stream
             try {
@@ -87,7 +90,7 @@ public class ChatServerWithThreads {
                 if(handlers.get(i) != this){
                     ObjectOutputStream stream = handlers.get(i).oos;
                     try {
-                        stream.writeObject(message);
+                        stream.writeObject(name + ": " + message);
                         stream.flush();
                     } catch (IOException e) {
                         // TODO Auto-generated catch block
